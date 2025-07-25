@@ -1,6 +1,0 @@
--- TODO: 
---  - Add an interface to interact with the app
---      - Add Task
---      - Remove Task
---      - Edit Task
---      - Set Task State

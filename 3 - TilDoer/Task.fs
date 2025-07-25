@@ -6,13 +6,12 @@ type TaskState =
     | Doing
     | Done
 
-let getState (state: TaskState) : string =
+let getStateSymbol (state: TaskState) : string =
     match state with
         | ToDo -> " "
         | Aborted -> ""
         | Doing -> "󰔚"
         | Done -> ""
-
 
 type Task = {
     name: string;
@@ -21,7 +20,7 @@ type Task = {
 }
 
 let getTask (task: Task) (showDesc: bool) : string =
-    let state = getState task.state
+    let state = getStateSymbol task.state
     let name = task.name
     let desc = if showDesc then "\n > " + task.desc else ""
 

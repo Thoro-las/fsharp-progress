@@ -1,6 +1,8 @@
 module TaskList
 
 open Task
+open System.IO
+open FSharp.Json
 
 type TaskList = Task list
 
@@ -25,6 +27,13 @@ let getTask (i: int) (tasklist: TaskList) : Task option =
         | true -> Some tasklist.[i]
         | false -> None
 
+let moveTask (i: int) (j: int) (tasklist: TaskList) : TaskList =
+    tasklist |> applyDefault (
+        fun tasklist -> 
+            let item = tasklist.[i]
+            tasklist |> List.removeAt i |> List.insertAt j item
+    ) (fun xs -> inRange i xs && inRange j xs)
+
 let editTask (i: int) (operation: Task -> Task) (tasklist: TaskList) : TaskList =
     tasklist |> applyDefault (
         List.mapi (fun index task ->
@@ -41,9 +50,24 @@ let setTaskState (i: int) (state: TaskState) (tasklist: TaskList) : TaskList =
         )
     ) (inRange i)
 
-let displayTaskList (tasklist: TaskList) : string =
-    let showTask (index: int) (task: Task) = 
-        sprintf "%d: [%s] %s" (index + 1) (getState task.state) task.name
 
-    tasklist |> List.mapi showTask
-        |> String.concat "\n"
+let displayTaskList (tasklist: TaskList) : string =
+    if tasklist = [] then "The tasklist is empty"
+    else 
+        let showTask (index: int) (task: Task) = 
+            sprintf "%d: [%s] %s" (index + 1) (getStateSymbol task.state) task.name
+
+        tasklist |> List.mapi showTask
+            |> String.concat "\n"
+
+let loadTaskList (path: string) : TaskList =
+    let targetPath = Path.Combine(Directory.GetCurrentDirectory(), "out/", path)
+    if not (File.Exists targetPath) then []
+    else File.ReadAllText targetPath |> Json.deserialize<TaskList>
+
+let saveTaskList (path: string) (tasklist: TaskList) : TaskList =
+    let serializedTaskList = Json.serialize tasklist
+    let targetPath = Path.Combine(Directory.GetCurrentDirectory(), "out/", path)
+    File.WriteAllText(targetPath, serializedTaskList)
+    tasklist
+
